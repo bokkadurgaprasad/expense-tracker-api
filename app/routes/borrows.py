@@ -1,8 +1,8 @@
 """
 API routes for BorrowRecord management
 """
-from typing import List
-from fastapi import APIRouter, Depends
+from typing import Dict, Any
+from fastapi import APIRouter, Depends, Query
 from app.models.borrow_record import BorrowRecord, BorrowCreate, BorrowUpdate
 from app.services.borrow_service import BorrowService
 from app.middleware.auth import get_current_user_id
@@ -21,11 +21,16 @@ def create_borrow(
     return service.create_borrow(user_id, data)
 
 
-@router.get("", response_model=List[BorrowRecord])
-def get_borrows(user_id: str = Depends(get_current_user_id)):
-    """Get all borrow records for the authenticated user"""
+@router.get("", response_model=Dict[str, Any])
+def get_borrows(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get all borrow records for the authenticated user with pagination"""
     service = BorrowService()
-    return service.get_borrows(user_id)
+    skip = (page - 1) * page_size
+    return service.get_borrows(user_id, skip, page_size)
 
 
 @router.get("/{borrow_id}", response_model=BorrowRecord)

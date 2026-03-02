@@ -89,7 +89,13 @@ class MonthlySnapshotService:
         snapshot_dict = self.repo.create(user_id, snapshot_data)
         return MonthlySnapshot(**snapshot_dict)
     
-    def get_snapshots(self, user_id: str) -> List[MonthlySnapshot]:
-        """Get all monthly snapshots for a user, ordered by date"""
-        snapshots = self.repo.find_by_user(user_id)
-        return [MonthlySnapshot(**snap) for snap in snapshots]
+    def get_snapshots(self, user_id: str, skip: int = 0, limit: int = 10) -> dict:
+        """Get all monthly snapshots for a user with pagination, ordered by date"""
+        snapshots, total_count = self.repo.find_by_user(user_id, skip, limit)
+        return {
+            "items": [MonthlySnapshot(**snap) for snap in snapshots],
+            "total": total_count,
+            "page": (skip // limit) + 1 if limit > 0 else 1,
+            "page_size": limit,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1
+        }

@@ -67,28 +67,53 @@ def create_bank_accounts(users):
     print("Creating bank accounts...")
     accounts = []
     
+    # Find dp_user
+    dp_user = next((u for u in users if u["username"] == "dp_user"), None)
+    
     for user in users:
-        user_accounts = [
-            {
-                "_id": ObjectId(),
-                "user_id": user["_id"],
-                "bank_name": "Chase Bank",
-                "liquid_balance": 15000.00,
-                "reserve_amount": 2000.00,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
-            },
-            {
-                "_id": ObjectId(),
-                "user_id": user["_id"],
-                "bank_name": "Wells Fargo",
-                "liquid_balance": 8000.00,
-                "reserve_amount": 1000.00,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
-            }
-        ]
-        accounts.extend(user_accounts)
+        if user["username"] == "dp_user":
+            # Create 15 bank accounts for dp_user to test pagination
+            bank_names = [
+                "Chase Bank", "Wells Fargo", "Bank of America", "Citibank", 
+                "US Bank", "PNC Bank", "Capital One", "TD Bank",
+                "HSBC", "Barclays", "Goldman Sachs", "Morgan Stanley",
+                "American Express Bank", "Discover Bank", "Ally Bank"
+            ]
+            
+            for i, bank_name in enumerate(bank_names):
+                user_accounts = {
+                    "_id": ObjectId(),
+                    "user_id": user["_id"],
+                    "bank_name": bank_name,
+                    "liquid_balance": 10000.00 + (i * 1000),
+                    "reserve_amount": 1000.00 + (i * 100),
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+                accounts.append(user_accounts)
+        else:
+            # Create 2 accounts for other users
+            user_accounts = [
+                {
+                    "_id": ObjectId(),
+                    "user_id": user["_id"],
+                    "bank_name": "Chase Bank",
+                    "liquid_balance": 15000.00,
+                    "reserve_amount": 2000.00,
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                },
+                {
+                    "_id": ObjectId(),
+                    "user_id": user["_id"],
+                    "bank_name": "Wells Fargo",
+                    "liquid_balance": 8000.00,
+                    "reserve_amount": 1000.00,
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+            ]
+            accounts.extend(user_accounts)
     
     db.bank_accounts.insert_many(accounts)
     print(f"✓ Created {len(accounts)} bank accounts")
@@ -131,7 +156,7 @@ def create_credit_cards(users, accounts):
                     "billed_amount": 1500.00,
                     "emi_due": 0.00,
                     "created_at": datetime.utcnow(),
-                    "updated_at": datetime.utcow()
+                    "updated_at": datetime.utcnow()
                 }
             ]
             cards.extend(user_cards)

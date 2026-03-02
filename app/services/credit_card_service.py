@@ -26,10 +26,16 @@ class CreditCardService:
         card_dict = self.repo.create(user_id, data.model_dump())
         return CreditCard(**card_dict)
     
-    def get_cards(self, user_id: str) -> List[CreditCard]:
-        """Get all credit cards for a user"""
-        cards = self.repo.find_by_user(user_id)
-        return [CreditCard(**card) for card in cards]
+    def get_cards(self, user_id: str, skip: int = 0, limit: int = 10) -> dict:
+        """Get all credit cards for a user with pagination"""
+        cards, total_count = self.repo.find_by_user(user_id, skip, limit)
+        return {
+            "items": [CreditCard(**card) for card in cards],
+            "total": total_count,
+            "page": (skip // limit) + 1 if limit > 0 else 1,
+            "page_size": limit,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1
+        }
     
     def get_card(self, user_id: str, card_id: str) -> CreditCard:
         """Get a specific credit card"""

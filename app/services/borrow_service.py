@@ -19,10 +19,16 @@ class BorrowService:
         borrow_dict = self.repo.create(user_id, data.model_dump())
         return BorrowRecord(**borrow_dict)
     
-    def get_borrows(self, user_id: str) -> List[BorrowRecord]:
-        """Get all borrow records for a user"""
-        borrows = self.repo.find_by_user(user_id)
-        return [BorrowRecord(**borrow) for borrow in borrows]
+    def get_borrows(self, user_id: str, skip: int = 0, limit: int = 10) -> dict:
+        """Get all borrow records for a user with pagination"""
+        borrows, total_count = self.repo.find_by_user(user_id, skip, limit)
+        return {
+            "items": [BorrowRecord(**borrow) for borrow in borrows],
+            "total": total_count,
+            "page": (skip // limit) + 1 if limit > 0 else 1,
+            "page_size": limit,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1
+        }
     
     def get_borrow(self, user_id: str, borrow_id: str) -> BorrowRecord:
         """Get a specific borrow record"""

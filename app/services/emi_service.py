@@ -19,10 +19,16 @@ class EMIService:
         emi_dict = self.repo.create(user_id, data.model_dump())
         return EMI(**emi_dict)
     
-    def get_emis(self, user_id: str) -> List[EMI]:
-        """Get all EMI records for a user"""
-        emis = self.repo.find_by_user(user_id)
-        return [EMI(**emi) for emi in emis]
+    def get_emis(self, user_id: str, skip: int = 0, limit: int = 10) -> dict:
+        """Get all EMI records for a user with pagination"""
+        emis, total_count = self.repo.find_by_user(user_id, skip, limit)
+        return {
+            "items": [EMI(**emi) for emi in emis],
+            "total": total_count,
+            "page": (skip // limit) + 1 if limit > 0 else 1,
+            "page_size": limit,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1
+        }
     
     def get_emi(self, user_id: str, emi_id: str) -> EMI:
         """Get a specific EMI record"""

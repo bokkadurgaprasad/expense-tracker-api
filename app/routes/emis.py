@@ -1,8 +1,8 @@
 """
 API routes for EMI management
 """
-from typing import List
-from fastapi import APIRouter, Depends
+from typing import Dict, Any
+from fastapi import APIRouter, Depends, Query
 from app.models.emi import EMI, EMICreate, EMIUpdate
 from app.services.emi_service import EMIService
 from app.middleware.auth import get_current_user_id
@@ -21,11 +21,16 @@ def create_emi(
     return service.create_emi(user_id, data)
 
 
-@router.get("", response_model=List[EMI])
-def get_emis(user_id: str = Depends(get_current_user_id)):
-    """Get all EMI records for the authenticated user"""
+@router.get("", response_model=Dict[str, Any])
+def get_emis(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get all EMI records for the authenticated user with pagination"""
     service = EMIService()
-    return service.get_emis(user_id)
+    skip = (page - 1) * page_size
+    return service.get_emis(user_id, skip, page_size)
 
 
 @router.get("/{emi_id}", response_model=EMI)

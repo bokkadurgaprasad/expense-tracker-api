@@ -1,8 +1,8 @@
 """
 API routes for ExpectedCashflow management
 """
-from typing import List
-from fastapi import APIRouter, Depends
+from typing import Dict, Any, List
+from fastapi import APIRouter, Depends, Query
 from app.models.expected_cashflow import ExpectedCashflow, CashflowCreate, CashflowUpdate
 from app.services.expected_cashflow_service import ExpectedCashflowService
 from app.middleware.auth import get_current_user_id
@@ -21,11 +21,16 @@ def create_cashflow(
     return service.create_cashflow(user_id, data)
 
 
-@router.get("", response_model=List[ExpectedCashflow])
-def get_cashflows(user_id: str = Depends(get_current_user_id)):
-    """Get all expected cashflows for the authenticated user"""
+@router.get("", response_model=Dict[str, Any])
+def get_cashflows(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get all expected cashflows for the authenticated user with pagination"""
     service = ExpectedCashflowService()
-    return service.get_cashflows(user_id)
+    skip = (page - 1) * page_size
+    return service.get_cashflows(user_id, skip, page_size)
 
 
 @router.get("/missed", response_model=List[ExpectedCashflow])

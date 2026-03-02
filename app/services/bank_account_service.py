@@ -19,10 +19,16 @@ class BankAccountService:
         account_dict = self.repo.create(user_id, data.model_dump())
         return BankAccount(**account_dict)
     
-    def get_accounts(self, user_id: str) -> List[BankAccount]:
-        """Get all bank accounts for a user"""
-        accounts = self.repo.find_by_user(user_id)
-        return [BankAccount(**acc) for acc in accounts]
+    def get_accounts(self, user_id: str, skip: int = 0, limit: int = 10) -> dict:
+        """Get all bank accounts for a user with pagination"""
+        accounts, total_count = self.repo.find_by_user(user_id, skip, limit)
+        return {
+            "items": [BankAccount(**acc) for acc in accounts],
+            "total": total_count,
+            "page": (skip // limit) + 1 if limit > 0 else 1,
+            "page_size": limit,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1
+        }
     
     def get_account(self, user_id: str, account_id: str) -> BankAccount:
         """Get a specific bank account"""

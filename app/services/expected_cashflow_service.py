@@ -19,10 +19,16 @@ class ExpectedCashflowService:
         cashflow_dict = self.repo.create(user_id, data.model_dump())
         return ExpectedCashflow(**cashflow_dict)
     
-    def get_cashflows(self, user_id: str) -> List[ExpectedCashflow]:
-        """Get all expected cashflows for a user"""
-        cashflows = self.repo.find_by_user(user_id)
-        return [ExpectedCashflow(**cf) for cf in cashflows]
+    def get_cashflows(self, user_id: str, skip: int = 0, limit: int = 10) -> dict:
+        """Get all expected cashflows for a user with pagination"""
+        cashflows, total_count = self.repo.find_by_user(user_id, skip, limit)
+        return {
+            "items": [ExpectedCashflow(**cf) for cf in cashflows],
+            "total": total_count,
+            "page": (skip // limit) + 1 if limit > 0 else 1,
+            "page_size": limit,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1
+        }
     
     def get_missed_cashflows(self, user_id: str) -> List[ExpectedCashflow]:
         """Get all missed cashflows for a user"""

@@ -30,8 +30,9 @@ class DashboardService:
         today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = today + timedelta(days=days)
         
-        # Get pending expenses from cashflows
-        cashflows = self.cashflow_service.get_cashflows(user_id)
+        # Get pending expenses from cashflows (fetch all without pagination for dashboard)
+        cashflows_data = self.cashflow_service.get_cashflows(user_id, skip=0, limit=1000)
+        cashflows = cashflows_data["items"] if isinstance(cashflows_data, dict) else cashflows_data
         for cf in cashflows:
             if cf.transaction_type == "expense" and cf.status == "pending":
                 # Ensure expected_date is naive datetime for comparison
@@ -47,8 +48,9 @@ class DashboardService:
                         due_date=expected_date
                     ))
         
-        # Get borrow records with upcoming due dates
-        borrows = self.borrow_service.get_borrows(user_id)
+        # Get borrow records with upcoming due dates (fetch all without pagination for dashboard)
+        borrows_data = self.borrow_service.get_borrows(user_id, skip=0, limit=1000)
+        borrows = borrows_data["items"] if isinstance(borrows_data, dict) else borrows_data
         for borrow in borrows:
             if borrow.status == "active":
                 # Ensure due_date is naive datetime for comparison
@@ -70,7 +72,8 @@ class DashboardService:
     
     def get_missed_income(self, user_id: str) -> List[ExpectedCashflow]:
         """Get all missed income transactions"""
-        cashflows = self.cashflow_service.get_cashflows(user_id)
+        cashflows_data = self.cashflow_service.get_cashflows(user_id, skip=0, limit=1000)
+        cashflows = cashflows_data["items"] if isinstance(cashflows_data, dict) else cashflows_data
         missed = [
             cf for cf in cashflows
             if cf.transaction_type == "income" and cf.status == "missed"

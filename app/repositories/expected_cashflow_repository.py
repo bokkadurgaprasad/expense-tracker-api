@@ -36,9 +36,16 @@ class ExpectedCashflowRepository:
         self.collection.insert_one(doc)
         return self._to_response(doc)
 
-    def find_by_user(self, user_id: str) -> List[dict]:
-        cursor = self.collection.find({"user_id": ObjectId(user_id)})
-        return [self._to_response(d) for d in cursor]
+    def find_by_user(self, user_id: str, skip: int = 0, limit: int = 10) -> tuple[List[dict], int]:
+        """
+        Find cashflows by user with pagination
+        Returns: (cashflows_list, total_count)
+        """
+        query = {"user_id": ObjectId(user_id)}
+        total_count = self.collection.count_documents(query)
+        cursor = self.collection.find(query).sort("created_at", -1).skip(skip).limit(limit)
+        cashflows = [self._to_response(d) for d in cursor]
+        return cashflows, total_count
 
     def find_by_id(self, cashflow_id: str, user_id: str) -> Optional[dict]:
         try:

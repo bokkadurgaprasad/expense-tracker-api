@@ -41,6 +41,13 @@ class MonthlySnapshotRepository:
         self.collection.insert_one(doc)
         return self._to_response(doc)
 
-    def find_by_user(self, user_id: str) -> List[dict]:
-        cursor = self.collection.find({"user_id": ObjectId(user_id)}).sort("snapshot_date", -1)
-        return [self._to_response(d) for d in cursor]
+    def find_by_user(self, user_id: str, skip: int = 0, limit: int = 10) -> tuple[List[dict], int]:
+        """
+        Find snapshots by user with pagination
+        Returns: (snapshots_list, total_count)
+        """
+        query = {"user_id": ObjectId(user_id)}
+        total_count = self.collection.count_documents(query)
+        cursor = self.collection.find(query).sort("snapshot_date", -1).skip(skip).limit(limit)
+        snapshots = [self._to_response(d) for d in cursor]
+        return snapshots, total_count
