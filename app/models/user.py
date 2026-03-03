@@ -41,6 +41,12 @@ class UserLogin(BaseModel):
     username: str = Field(..., description="Username for login")
     password: str = Field(..., description="Password for login")
 
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        """Normalize username to lowercase for case-insensitive login"""
+        return v.lower()
+
 
 class PasswordReset(BaseModel):
     """Schema for password reset"""
